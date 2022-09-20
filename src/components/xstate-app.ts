@@ -18,10 +18,4 @@ class XstateApp extends LitElement {
       <xstate-service .service=${this.service}></xstate-service>
     `
   }
-
-  _nextEventHandler(e) {
-    const event = e.target.dataset.event;
-    this.service.send(event);
-    console.log(this.service.state.value)
-  }
 }

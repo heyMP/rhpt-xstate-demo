@@ -9,15 +9,25 @@ const RESPONSE_TYPES = [
   "422",
   "451",
   "500"
-]
+] as const;
+
+type ResponseType = 
+  | 200
+  | 400
+  | 401
+  | 403
+  | 404
+  | 422
+  | 451
+  | 500
 
 // Edit your machine(s) here
 export const activateMachine =
 	createMachine({
-		context: {},
+		context: { response: null },
 		tsTypes: {} as import("./activate.typegen").Typegen0,
 		schema: {
-			context: { } as {},
+			context: { } as { response: ResponseType },
       events: { } as
         | { type: "200" }
         | { type: "400" }
@@ -34,10 +44,10 @@ export const activateMachine =
 			activating: {
 				on: {
           // add all of the response types as final events
-          ...RESPONSE_TYPES.reduce((a,state) => ({ ...a, [state]: state}), {})
+          ...RESPONSE_TYPES.reduce((a,state) => ({ ...a, [state]: { target: state }}), {})
 				},
 			},
       // add all of the response types as final events
-      ...RESPONSE_TYPES.reduce((a,state) => ({ ...a, [state]: { type: 'final' }}), {})
+      ...RESPONSE_TYPES.reduce((a,state) => ({ ...a, [state]: { type: 'final', data: { type: state } }}), {})
 		},
 	});

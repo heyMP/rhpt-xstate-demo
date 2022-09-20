@@ -1,4 +1,4 @@
-import { createMachine, interpret, assign, spawn } from "xstate";
+import { createMachine, interpret, assign, spawn, send } from "xstate";
 import { activateMachine } from "./activate";
 
 // Edit your machine(s) here
@@ -36,18 +36,23 @@ export const productTrialMachine =
       activate: {
         invoke: {
           id: 'activateActor',
-          src: activateMachine
+          src: activateMachine,
+          onDone: [
+            { target: 'success', cond: 'isSuccess' },
+            { target: 'in_progress', cond: 'isInProgress' },
+            { target: 'error', cond: 'isError' }
+          ]
         },
         on: {
-          SUCCESS: {
-            target: "success",
-          },
-          IN_PROGRESS: {
-            target: "in_progress",
-          },
-          ERROR: {
-            target: "error",
-          },
+          // SUCCESS: {
+          //   target: "success",
+          // },
+          // IN_PROGRESS: {
+          //   target: "in_progress",
+          // },
+          // ERROR: {
+          //   target: "error",
+          // },
         },
       },
       success: {
@@ -67,5 +72,16 @@ export const productTrialMachine =
       //     count: context.count + 1
       //   }
       // })
+    },
+    guards: {
+      isSuccess: (_, event) => {
+        return event.data.type.startsWith('2')
+      },
+      isInProgress: (_, event) => {
+        return event.data.type.startsWith('3')
+      },
+      isInProgress: (_, event) => {
+        return event.data.type.startsWith('4') || event.data.type.startsWith('5')
+      },
     }
   });
