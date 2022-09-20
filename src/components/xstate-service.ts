@@ -7,9 +7,9 @@ class XstateService extends LitElement {
   service = null;
 
   protected firstUpdated(_changedProperties: PropertyValueMap<any> | Map<PropertyKey, unknown>): void {
-    this.service?.onTransition(state => {
+    this.service?.onTransition(() => {
       this.requestUpdate();
-    })
+    });
   }
 
   render() {
