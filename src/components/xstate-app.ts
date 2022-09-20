@@ -1,28 +1,21 @@
 import { LitElement, html, css, PropertyValueMap } from "lit";
-import { state } from "lit/decorators/state.js"
-import { service } from "../machines/app"
+import { customElement } from 'lit/decorators.js';
+import { service } from "../machines/app";
+import './xstate-service';
 
+@customElement('xstate-app')
 class XstateApp extends LitElement {
   private service = service.start();
 
   constructor() {
     super();
-    this.service.onTransition(state => {
-      this.requestUpdate();
-    })
   }
 
   render() {
     const nextEvents = this.service.state.nextEvents;
     return html`
       <h1>XState TypeScript Example</h1>
-      <p>Current state is ${this.service.state.value}</p>
-      ${nextEvents.map(event => html`
-        <button @click=${this._nextEventHandler.bind(this)} data-event=${event}>${event}</button>
-      `)}
-      ${this.service.state.done ? html`
-        Entered a final state
-      ` : ''}
+      <xstate-service .service=${this.service}></xstate-service>
     `
   }
 
@@ -32,5 +25,3 @@ class XstateApp extends LitElement {
     console.log(this.service.state.value)
   }
 }
-
-customElements.define('xstate-app', XstateApp);
