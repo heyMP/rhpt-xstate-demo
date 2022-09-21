@@ -8,6 +8,6 @@ inspect({
   iframe: false,
 });
 
-export const service = interpret(productTrialMachine, { devTools: true });
+export const productTrialService = interpret(productTrialMachine, { devTools: true });
 
-window.service = service;
+window.productTrialService = productTrialService;

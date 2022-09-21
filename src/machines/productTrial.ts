@@ -75,13 +75,13 @@ export const productTrialMachine =
     },
     guards: {
       isSuccess: (_, event) => {
-        return event.data.type.startsWith('2')
+        return event?.data?.type?.startsWith('2')
       },
       isInProgress: (_, event) => {
-        return event.data.type.startsWith('3')
+        return (event?.data?.type === '409')
       },
-      isInProgress: (_, event) => {
-        return event.data.type.startsWith('4') || event.data.type.startsWith('5')
+      isError: (_, event) => {
+        return event?.data?.type.startsWith('4') || event?.data?.type.startsWith('5')
       },
     }
   });
