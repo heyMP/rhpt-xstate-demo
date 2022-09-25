@@ -1,5 +1,5 @@
-import { createMachine, interpret, assign, spawn, send } from "xstate";
-import { activateMachine, ResponseType } from "./activate";
+import { createMachine, interpret, assign, spawn, send, actions } from "xstate";
+import { activateMachine, ResponseType, OnDoneData } from "./activate";
 
 // Edit your machine(s) here
 export const productTrialMachine =
@@ -16,6 +16,8 @@ export const productTrialMachine =
         | { type: "IN_PROGRESS" }
         | { type: "EXPIRED" }
         | { type: "ERROR"; value: string },
+      services: {} as
+        | { 'activateService': { data: OnDoneData }}
     },
     id: "productTrial",
     initial: "init",
@@ -36,13 +38,12 @@ export const productTrialMachine =
       },
       activate: {
         invoke: {
-          id: 'activateActor',
-          src: activateMachine,
+          src: 'activateService',
           onDone: [
             { target: 'success', cond: 'isSuccess' },
             { target: 'in_progress', cond: 'isInProgress' },
             { target: 'expired', cond: 'isExpired' },
-            { target: 'error', cond: 'isError' }
+            { target: 'error', cond: 'isError' },
           ],
         },
         on: {
@@ -68,16 +69,19 @@ export const productTrialMachine =
   }, {
     guards: {
       isSuccess: (_, event) => {
-        return event?.data?.type?.startsWith('2');
+        return event.data.resType.startsWith('2');
       },
       isInProgress: (_, event) => {
-        return (event?.data?.type === '409')
+        return (event.data.resType === '409')
       },
       isExpired: (_, event) => {
-        return (event?.data?.type.startsWith('4'))
+        return (event.data.resType.startsWith('4'))
       },
       isError: (_, event) => {
-        return event?.data?.type.startsWith('5')
+        return event.data.resType.startsWith('5')
       },
+    },
+    services: {
+      activateService: activateMachine
     }
   });

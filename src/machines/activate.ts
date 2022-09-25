@@ -16,17 +16,19 @@ export type ResponseType = (typeof RESPONSE_TYPES)[number]
 
 export type EventsObject = { type: ResponseType } 
 
+export type OnDoneData = { resType: ResponseType }
+
 // Edit your machine(s) here
 export const activateMachine =
   createMachine({
     tsTypes: {} as import("./activate.typegen").Typegen0,
     schema: {
-      context: {} as { type: ResponseType },
+      context: {} as { resType: ResponseType },
       events: {} as EventsObject
     },
     id: 'activate',
     initial: 'activating',
-    context: { type: null },
+    context: { resType: null },
     states: {
       activating: {
         on: {
@@ -43,15 +45,15 @@ export const activateMachine =
       },
       doneActivating: {
         type: 'final',
-        data: (context) => ({
-          type: context?.type
+        data: (context): OnDoneData => ({
+          resType: context.resType
         })
       }
     },
   }, {
     actions: {
       updateResponseType: assign((_, event) => ({
-        type: event.type
+        resType: event.type
       }))
     }
   });

@@ -22,7 +22,7 @@ class XstateService extends LitElement {
           <button @click=${this._nextEventHandler.bind(this)} data-event=${event}>${event}</button>
         `: ''}
       `)}
-      ${this.service?.state?.done ? html`
+      ${this.service?.state.done ? html`
         Entered a final state
       ` : ''}
       ${childServices.map(service => html`
