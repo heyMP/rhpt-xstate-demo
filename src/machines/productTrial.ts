@@ -1,5 +1,5 @@
 import { createMachine, interpret, assign, spawn, send } from "xstate";
-import { activateMachine } from "./activate";
+import { activateMachine, ResponseType } from "./activate";
 
 // Edit your machine(s) here
 export const productTrialMachine =
@@ -14,6 +14,7 @@ export const productTrialMachine =
         | { type: "ACTIVATE" }
         | { type: "SUCCESS" }
         | { type: "IN_PROGRESS" }
+        | { type: "EXPIRED" }
         | { type: "ERROR"; value: string },
     },
     id: "productTrial",
@@ -40,20 +41,16 @@ export const productTrialMachine =
           onDone: [
             { target: 'success', cond: 'isSuccess' },
             { target: 'in_progress', cond: 'isInProgress' },
+            { target: 'expired', cond: 'isExpired' },
             { target: 'error', cond: 'isError' }
-          ]
+          ],
         },
         on: {
-          // SUCCESS: {
-          //   target: "success",
-          // },
-          // IN_PROGRESS: {
-          //   target: "in_progress",
-          // },
-          // ERROR: {
-          //   target: "error",
-          // },
-        },
+          SUCCESS: 'success',
+          IN_PROGRESS: 'in_progress',
+          EXPIRED: 'expired',
+          ERROR: 'error'
+        }
       },
       success: {
         type: "final",
@@ -61,27 +58,26 @@ export const productTrialMachine =
       in_progress: {
         type: "final",
       },
+      expired: {
+        type: "final",
+      },
       error: {
         type: "final",
       },
     },
   }, {
-    actions: {
-      // increment: assign((context, event) => {
-      //   return {
-      //     count: context.count + 1
-      //   }
-      // })
-    },
     guards: {
       isSuccess: (_, event) => {
-        return event?.data?.type?.startsWith('2')
+        return event?.data?.type?.startsWith('2');
       },
       isInProgress: (_, event) => {
         return (event?.data?.type === '409')
       },
+      isExpired: (_, event) => {
+        return (event?.data?.type.startsWith('4'))
+      },
       isError: (_, event) => {
-        return event?.data?.type.startsWith('4') || event?.data?.type.startsWith('5')
+        return event?.data?.type.startsWith('5')
       },
     }
   });

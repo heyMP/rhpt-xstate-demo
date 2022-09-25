@@ -1,6 +1,6 @@
 import { createMachine, interpret, assign, send } from "xstate";
 
-const RESPONSE_TYPES = [
+export const RESPONSE_TYPES = [
   '200',
   '400',
   '401',
@@ -12,9 +12,9 @@ const RESPONSE_TYPES = [
   '500'
 ] as const;
 
-type ResponseType = (typeof RESPONSE_TYPES)[number]
+export type ResponseType = (typeof RESPONSE_TYPES)[number]
 
-type EventsObject = { type: ResponseType } 
+export type EventsObject = { type: ResponseType } 
 
 // Edit your machine(s) here
 export const activateMachine =

@@ -16,13 +16,13 @@ class XstateService extends LitElement {
     const nextEvents = this.service?.state?.nextEvents ?? [];
     const childServices = Array.from(this.service.children.values());
     return html`
-      <p>Current state is ${this.service.state.value}</p>
+      <p>Current state is ${this.service?.state?.value}</p>
       ${nextEvents.map(event => html`
         ${!event.startsWith('done.invoke') ? html`
           <button @click=${this._nextEventHandler.bind(this)} data-event=${event}>${event}</button>
         `: ''}
       `)}
-      ${this.service.state.done ? html`
+      ${this.service?.state?.done ? html`
         Entered a final state
       ` : ''}
       ${childServices.map(service => html`

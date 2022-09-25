@@ -4,7 +4,7 @@
   "description": "You can fork this sandbox to create a reproduction for XState issues.",
   "main": "index.html",
   "scripts": {
-    "start": "run-p dev dev typegen:watch",
+    "start": "run-p dev typegen:watch",
     "dev": "parcel index.html",
     "typegen": "xstate typegen \"src/**/*.ts?(x)\"",
     "typegen:watch": "xstate typegen \"src/**/*.ts?(x)\" --watch",
