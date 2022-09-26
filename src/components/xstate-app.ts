@@ -9,9 +9,10 @@ import './xstate-service';
 @customElement('xstate-app')
 class XstateApp extends LitElement {
   private productTrialService = interpret(productTrialMachine, { devTools: true });
-  @query('rh-product-trial') rhProductTrialElement;
+  @query('rh-product-trial') rhProductTrialElement: any;
 
   @state() error: boolean = false;
+  @state() complianceError: boolean = false;
 
   protected firstUpdated(): void {
     this.initMachine();
@@ -63,6 +64,7 @@ class XstateApp extends LitElement {
 
         // update local error state
         this.error = state.value === 'error';
+        this.complianceError = state.value === 'compliance';
       })
       .start();
   }
@@ -73,7 +75,11 @@ class XstateApp extends LitElement {
       <xstate-service .service=${this.productTrialService}></xstate-service>
       ${this.error ? html`
         <p>We have an error going on!</p>
-      `: html`
+      `:
+      this.complianceError ? html`
+        <p>We need to redirect the user to a compliance page here!</p>
+      `:
+      html`
         <rh-product-trial></rh-product-trial>
       `
       }

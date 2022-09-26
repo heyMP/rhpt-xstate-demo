@@ -15,6 +15,7 @@ export const productTrialMachine =
         | { type: "SUCCESS" }
         | { type: "IN_PROGRESS" }
         | { type: "EXPIRED" }
+        | { type: "COMPLIANCE_ERROR" }
         | { type: "ERROR"; value: string },
       services: {} as
         | { 'activateService': { data: OnDoneData }}
@@ -42,16 +43,11 @@ export const productTrialMachine =
           onDone: [
             { target: 'success', cond: 'isSuccess' },
             { target: 'in_progress', cond: 'isInProgress' },
+            { target: 'compliance', cond: 'isComplianceError' },
             { target: 'expired', cond: 'isExpired' },
             { target: 'error', cond: 'isError' },
           ],
         },
-        on: {
-          SUCCESS: 'success',
-          IN_PROGRESS: 'in_progress',
-          EXPIRED: 'expired',
-          ERROR: 'error'
-        }
       },
       success: {
         type: "final",
@@ -61,6 +57,9 @@ export const productTrialMachine =
       },
       expired: {
         type: "final",
+      },
+      compliance: {
+        type: 'final'
       },
       error: {
         type: "final",
@@ -76,6 +75,9 @@ export const productTrialMachine =
       },
       isExpired: (_, event) => {
         return (event.data.resType.startsWith('4'))
+      },
+      isComplianceError: (_, event) => {
+        return (event.data.resType === '451')
       },
       isError: (_, event) => {
         return event.data.resType.startsWith('5')
