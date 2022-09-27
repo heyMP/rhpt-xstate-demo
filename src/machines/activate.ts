@@ -1,4 +1,4 @@
-import { createMachine, interpret, assign, send } from "xstate";
+import { createMachine, assign } from "xstate";
 
 export const RESPONSE_TYPES = [
   '200',
@@ -12,9 +12,13 @@ export const RESPONSE_TYPES = [
   '500'
 ] as const;
 
+const getHttpStatus = (statusCode = 200, sleep = 500) => { 
+  return fetch(`https://httpstat.us/${statusCode ?? '200'}?sleep=${sleep}`).then((response) => response.status.toString()).catch((error) => error);
+}
+
 export type ResponseType = (typeof RESPONSE_TYPES)[number]
 
-export type EventsObject = { type: ResponseType } 
+export type EventsObject = { type: ResponseType }
 
 export type OnDoneData = { resType: ResponseType }
 
@@ -23,7 +27,7 @@ export const activateMachine =
   createMachine({
     tsTypes: {} as import("./activate.typegen").Typegen0,
     schema: {
-      context: {} as { resType: ResponseType },
+      context: {} as { resType: ResponseType, sleep: Number },
       events: {} as EventsObject
     },
     id: 'activate',
@@ -31,17 +35,16 @@ export const activateMachine =
     context: { resType: null },
     states: {
       activating: {
-        on: {
-          '200': { target: 'doneActivating', actions: 'updateResponseType' },
-          '400': { target: 'doneActivating', actions: 'updateResponseType' },
-          '401': { target: 'doneActivating', actions: 'updateResponseType' },
-          '403': { target: 'doneActivating', actions: 'updateResponseType' },
-          '404': { target: 'doneActivating', actions: 'updateResponseType' },
-          '409': { target: 'doneActivating', actions: 'updateResponseType' },
-          '422': { target: 'doneActivating', actions: 'updateResponseType' },
-          '451': { target: 'doneActivating', actions: 'updateResponseType' },
-          '500': { target: 'doneActivating', actions: 'updateResponseType' },
+        invoke: {
+          id: 'getHttpStatus',
+          src: (context, _) => getHttpStatus(context.resType, context.sleep),
+          onDone: {
+            actions: 'updateResponseType',
+          }
         },
+        onDone: {
+          target: 'doneActivating',
+        }
       },
       doneActivating: {
         type: 'final',
@@ -52,8 +55,10 @@ export const activateMachine =
     },
   }, {
     actions: {
-      updateResponseType: assign((_, event) => ({
-        resType: event.type
-      }))
+      updateResponseType: assign({
+        resType: (_, event) => {
+          return event.data;
+        }
+      })
     }
   });
