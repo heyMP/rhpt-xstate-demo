@@ -1,7 +1,7 @@
 import { LitElement, html } from "lit";
 import { customElement, state } from 'lit/decorators.js';
 import { assign, createMachine, interpret } from '@xstate/fsm';
-import '@rhdc-fed/rh-product-trial';
+// import '@rhdc-fed/rh-product-trial';
 
 export const rhProductTrialMachine = createMachine({
   id: 'rh-product-trial',

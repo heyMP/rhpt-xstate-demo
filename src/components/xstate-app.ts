@@ -2,7 +2,7 @@ import { LitElement, html, css, PropertyValueMap } from "lit";
 import { customElement, query, state } from 'lit/decorators.js';
 import { interpret } from 'xstate';
 import { inspect } from '@xstate/inspect';
-import '@rhdc-fed/rh-product-trial';
+// import '@rhdc-fed/rh-product-trial';
 import { productTrialMachine } from '../machines/productTrial';
 import './xstate-service';
 import { RESPONSE_TYPES } from "../machines/activate";
