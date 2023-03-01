@@ -15,12 +15,13 @@
     "@rhdc-fed/rh-product-trial": "latest",
     "@xstate/fsm": "^2.0.0",
     "lit": "^2.3.1",
-    "xstate": "4.32.1"
+    "xstate": "4.36.0"
   },
   "devDependencies": {
     "@babel/core": "7.2.0",
-    "@xstate/cli": "^0.3.3",
-    "@xstate/inspect": "^0.7.0",
+    "@patternfly/eslint-config-elements": "^1.0.0-rc.1",
+    "@xstate/cli": "^0.4.2",
+    "@xstate/inspect": "^0.7.1",
     "babel-preset-env": "^1.7.0",
     "npm-run-all": "^4.1.5",
     "parcel-bundler": "^1.6.1",
