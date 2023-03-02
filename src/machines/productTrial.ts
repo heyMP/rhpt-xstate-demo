@@ -6,6 +6,7 @@ export const productTrialMachine =
 createMachine({
   id: "Product Trial",
   initial: "Initializing",
+  tsTypes: {} as import("./productTrial.typegen").Typegen0,
   states: {
     Initializing: {
       on: {
@@ -88,7 +89,7 @@ createMachine({
       on: {
         activated: {
           target: "Trial Activated",
-          cond: "Authenticated",
+          cond: "isAuthenticated",
         },
         Login: {
           target: "Authenticate",
@@ -230,6 +231,8 @@ createMachine({
   guards: {
     hasBypass: (context) => context.hasBypass,
     hasSelectedOffer: (context) => !!context.selectedOffer,
-    isAuthenticated: (context) => !!context.isAuthenticated,
+    isAuthenticated: (context, event) => {
+        
+    },
   },
 });
