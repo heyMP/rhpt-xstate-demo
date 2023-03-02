@@ -3,104 +3,233 @@ import { activateMachine, OnDoneData } from "./activate";
 
 // Edit your machine(s) here
 export const productTrialMachine =
-  createMachine({
-    context: { mockedType: undefined },
-    tsTypes: {} as import("./productTrial.typegen").Typegen0,
-    schema: {
-      context: {
-      } as {
-        mockedType?: number
+createMachine({
+  id: "Product Trial",
+  initial: "Initializing",
+  states: {
+    Initializing: {
+      on: {
+        Initialized: [
+          {
+            target: "Activating",
+            cond: "hasBypass",
+            description: "- Offer has bypass\n- URL has bypass",
+          },
+          {
+            target: "Loading",
+          },
+        ],
       },
-      events: {} as
-        | { type: "INITIALIZED" }
-        | { type: "ACTIVATE" }
-        | { type: "SUCCESS" }
-        | { type: "IN_PROGRESS" }
-        | { type: "EXPIRED" }
-        | { type: "COMPLIANCE_ERROR" }
-        | { type: "ERROR"; value: string },
-      services: {} as
-        | { 'activateService': { data: OnDoneData } }
     },
-    id: "productTrial",
-    initial: "init",
-    states: {
-      init: {
-        on: {
-          INITIALIZED: {
-            target: "try_it",
+    Idle: {
+      on: {
+        requestActivation: {
+          target: "Activating",
+          cond: "hasSelectedOffer",
+          description: "Clicking the 'Try it' button",
+        },
+        offerSelected: {
+          description: "User selects offer from dropdown",
+        },
+        updatePlaceholder: {
+          description: "Updates for Preview mode",
+        },
+      },
+    },
+    TrialSuccess: {
+      on: {
+        download: [
+          {
+            target: "TrialSuccess",
+            cond: "successful",
+            internal: false,
+          },
+          {
+            target: "TrialSuccess",
+            cond: "downloadError",
+            internal: false,
+          },
+        ],
+      },
+    },
+    Error: {
+      type: "final",
+    },
+    TrialExpired: {
+      type: "final",
+    },
+    TrialInProgress: {
+      on: {
+        "Event 1": {
+          target: "Download",
+        },
+      },
+      type: "final",
+    },
+    Loading: {
+      invoke: {
+        src: "SPA",
+        id: "loadData",
+        onDone: [
+          {
+            target: "Idle",
+          },
+        ],
+        onError: [
+          {
+            target: "Error",
+            description: "Failed AJAX request to fetch node",
+          },
+        ],
+      },
+    },
+    Activating: {
+      entry: "Authenticate",
+      on: {
+        activated: {
+          target: "Trial Activated",
+          cond: "Authenticated",
+        },
+        Login: {
+          target: "Authenticate",
+        },
+        requestActivation: {
+          target: "Error",
+          cond: "AJAXError",
+        },
+      },
+    },
+    "Trial Activated": {
+      on: {
+        activate: [
+          {
+            target: "TrialSuccess",
+            cond: "TrialSuccess",
+          },
+          {
+            target: "TrialExpired",
+            cond: "TrialExpired",
+          },
+          {
+            target: "TrialInProgress",
+            cond: "TrialInProgress",
+          },
+          {
+            target: "OrgAdminPage",
+            cond: "ErrorNoOrgAdmin",
+          },
+          {
+            target: "IneligibilityPage",
+            cond: "ErrorIneligible",
+          },
+          {
+            target: "RequiresPartnerTerms",
+            cond: "ErrorRequiresPartnerTerms",
+          },
+          {
+            target: "ExportCompliance",
+            cond: "ErrorExportCompliance",
+          },
+          {
+            target: "CustomerService",
+            cond: "ErrorCustomerService",
+          },
+          {
+            target: "TrialSuccessRedirect",
+            cond: "hasBypassSuccessRedirect",
+          },
+          {
+            target: "Error",
+            cond: "Error",
+          },
+        ],
+      },
+    },
+    OrgAdminPage: {
+      type: "final",
+    },
+    IneligibilityPage: {
+      type: "final",
+    },
+    RequiresPartnerTerms: {
+      type: "final",
+    },
+    ExportCompliance: {
+      type: "final",
+    },
+    CustomerService: {
+      type: "final",
+    },
+    TrialSuccessRedirect: {
+      entry: "SuccessRedirect",
+    },
+    Authenticate: {
+      invoke: {
+        src: "Keycloak",
+        id: "authenticate",
+        onDone: [
+          {
+            target: "Activating",
+          },
+        ],
+        onError: [
+          {
+            target: "Error",
+          },
+        ],
+      },
+      initial: "LoggedOut",
+      states: {
+        LoggedOut: {
+          on: {
+            login: {
+              target: "Authenticated",
+            },
+          },
+        },
+        Authenticated: {
+          on: {
+            logout: {
+              target: "LoggedOut",
+            },
           },
         },
       },
-      try_it: {
-        on: {
-          ACTIVATE: {
-            target: "activate",
-            actions: [
-              'assignMockType'
-            ]
-          },
-        },
-      },
-      activate: {
-        invoke: {
-          src: 'activateService',
-          data: {
-            resType: (context, _) => context.mockedType
-          },
-          onDone: [
-            { target: 'success', cond: 'isSuccess' },
-            { target: 'in_progress', cond: 'isInProgress' },
-            { target: 'compliance', cond: 'isComplianceError' },
-            { target: 'expired', cond: 'isExpired' },
-            { target: 'error', cond: 'isError' },
-          ],
-        },
-      },
-      success: {
-        type: "final",
-      },
-      in_progress: {
-        type: "final",
-      },
-      expired: {
-        type: "final",
-      },
-      compliance: {
-        type: 'final'
-      },
-      error: {
-        type: "final",
-      },
+      type: "parallel",
     },
-  }, {
-    guards: {
-      isSuccess: (_, event) => {
-        console.log('isSuccess');
-        console.log(event);
-        return event.data.resType.startsWith('2');
-      },
-      isInProgress: (_, event) => {
-        console.log('isInProgress');
-        return (event.data.resType === '409')
-      },
-      isExpired: (_, event) => {
-        console.log('isExpired');
-        return (event.data.resType.startsWith('4'))
-      },
-      isComplianceError: (_, event) => {
-        console.log('isComplianceError');
-        return (event.data.resType === '451')
-      },
-      isError: (_, event) => {
-        console.log('isError');
-        return event.data.resType.startsWith('5')
-      },
+    Download: {},
+  },
+  schema: {
+    context: {} as {
+      hasBypass: boolean;
+      isAuthenticated: boolean;
+      selectedOffer: string;
     },
-    services: {
-      activateService: activateMachine
-    },
-    actions: {
-      assignMockType: assign({ mockedType: (_ctx, event) => event.status })
-    }
-  });
+    events: {} as
+      | { type: "Initialized" }
+      | { type: "requestActivation" }
+      | { type: "offerSelected" }
+      | { type: "updatePlaceholder" }
+      | { type: "download" }
+      | { type: "Event 1" }
+      | { type: "activated" }
+      | { type: "Login" }
+      | { type: "activate" }
+      | { type: "login" }
+      | { type: "logout" },
+  },
+  context: {
+    hasBypass: false,
+    isAuthenticated: false,
+    selectedOffer: null,
+  },
+  predictableActionArguments: true,
+  preserveActionOrder: true,
+},
+{
+  guards: {
+    hasBypass: (context) => context.hasBypass,
+    hasSelectedOffer: (context) => !!context.selectedOffer,
+    isAuthenticated: (context) => !!context.isAuthenticated,
+  },
+});

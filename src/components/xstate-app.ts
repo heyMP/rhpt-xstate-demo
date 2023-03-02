@@ -1,15 +1,21 @@
-import { LitElement, html, css, PropertyValueMap } from "lit";
+import { LitElement, html } from "lit";
 import { customElement, query, state } from 'lit/decorators.js';
 import { interpret } from 'xstate';
 import { inspect } from '@xstate/inspect';
 import '@rhdc-fed/rh-product-trial';
 import { productTrialMachine } from '../machines/productTrial';
 import './xstate-service';
-import { RESPONSE_TYPES } from "../machines/activate";
+/* import { RESPONSE_TYPES } from "../machines/activate"; */
 
 @customElement('xstate-app')
-class XstateApp extends LitElement {
-  private productTrialService = interpret(productTrialMachine, { devTools: true });
+export class XstateApp extends LitElement {
+  private productTrialService = interpret(
+    productTrialMachine.withContext({
+      ...productTrialMachine.context,
+      selectedOffer: '12134',
+      hasBypass: false
+    }), { devTools: true })
+    /* .start('Idle'); */
   @query('rh-product-trial') rhProductTrialElement: any;
 
   @state() error: boolean = false;
@@ -30,19 +36,25 @@ class XstateApp extends LitElement {
 
     this.productTrialService
       .onTransition(state => {
-        if (state.matches('init')) {
+        if (state.matches('Initializing')) {
           this.rhProductTrialElement.state = '';
           this.rhProductTrialElement.initialized = false;
-          this.rhProductTrialElement.isProcessing = false;
+          this.rhProductTrialElement.isProcessing = true;
           this._showDefaultOptions = false;
         }
-        if (state.matches('try_it')) {
+        if (state.matches('Initialized')) {
+          this.rhProductTrialElement.state = '';
+          this.rhProductTrialElement.initialized = false;
+          this.rhProductTrialElement.isProcessing = true;
+          this._showDefaultOptions = false;
+        }
+        if (state.matches('Idle')) {
           this.rhProductTrialElement.state = 'default';
           this.rhProductTrialElement.initialized = true;
           this.rhProductTrialElement.isProcessing = false;
           this._showDefaultOptions = true;
         }
-        if (state.matches('activate')) {
+        if (state.matches('Activating')) {
           this.rhProductTrialElement.initialized = true;
           this.rhProductTrialElement.isProcessing = true;
           this._showDefaultOptions = false;
@@ -80,19 +92,20 @@ class XstateApp extends LitElement {
   }
 
   private _sendStatusCodeEvt(status) {
-    this.productTrialService.send({ type: 'ACTIVATE', status });
+    /* this.productTrialService.send({ type: 'ACTIVATE', status }); */
+  }
+
+  connectedCallback(): void {
+    super.connectedCallback();
+    this.addEventListener('rh-product-trial:offer-selected', () => console.log('hi'));
   }
 
   render() {
+    console.log(this.productTrialService);
     return html`
       <h1>XState TypeScript Example</h1>
       <xstate-service .service=${this.productTrialService}></xstate-service>
-      ${this._showDefaultOptions ? 
-        html`
-          More Options: 
-          ${RESPONSE_TYPES.map((resp) => html`<button @click="${() => this._sendStatusCodeEvt(resp)}">${resp.toString()}</button>`)}` : html``}
-          
-      ${this.error ? html`
+      ${this.productTrialService?.state?.matches('Error') ? html`
         <p>We have an error going on!</p>
       `:
       this.complianceError ? html`

@@ -2,7 +2,7 @@ import { LitElement, html, css, PropertyValueMap } from "lit";
 import { property, customElement } from 'lit/decorators.js';
 
 @customElement('xstate-service')
-class XstateService extends LitElement {
+export class XstateService extends LitElement {
   @property({ type: Object })
   service = null;
 
@@ -17,10 +17,8 @@ class XstateService extends LitElement {
     const childServices = Array.from(this.service.children.values());
     return html`
       <p>Current state is ${this.service?.state?.value}</p>
-      ${nextEvents.map(event => html`
-        ${!event.startsWith('done.invoke') ? html`
-          <button @click=${this._nextEventHandler.bind(this)} data-event=${event}>${event}</button>
-        `: ''}
+      ${nextEvents.map((event:any) => html`
+        <button ?disabled=${!this.service?.state?.can({ type: event })} @click=${this._nextEventHandler.bind(this)} data-event=${event}>${event}</button>
       `)}
       ${this.service?.state?.done ? html`
         Entered a final state
@@ -31,7 +29,7 @@ class XstateService extends LitElement {
     `
   }
 
-  _nextEventHandler(e) {
+  _nextEventHandler(e:any) {
     const event = e.target.dataset.event;
     this.service.send(event);
   }
